@@ -1,24 +1,23 @@
-# ☁️ Cloud-Based Visitor Counter Using Docker, Kubernetes and Redis
+# ☁️ Cloud-Based Visitor Counter Using Flask, Redis, Docker and Kubernetes
 
-A cloud-native web application that tracks website visitors using **Python Flask and Redis**, containerized with **Docker** and deployed using **Kubernetes**.
+A cloud computing project that demonstrates containerization, Kubernetes deployment, horizontal pod autoscaling, hybrid-cloud simulation with failover, and resource optimization.
 
 ## 📌 Project Overview
 
-This project demonstrates how a web application can be containerized and deployed in a Kubernetes environment.
+This project implements a visitor counter web application using Python Flask and Redis.
 
-Whenever a user visits the website, the visitor count increases automatically. Redis stores the visitor count centrally, allowing multiple Flask application replicas to share the same counter.
+Whenever a user visits the application, the visitor count is incremented and stored in Redis. Docker is used to containerize the application, while Kubernetes manages deployment, scaling, service discovery, and self-healing.
 
-The application is deployed locally using Minikube.
+The project also demonstrates Horizontal Pod Autoscaling (HPA) and hybrid-cloud failover using two independent local Minikube clusters connected through an NGINX reverse proxy.
 
-## 🎯 Objectives
+## 🎯 Project Objectives
 
-- Build a web application using Python Flask.
-- Store visitor counts using Redis.
-- Containerize the application using Docker.
-- Manage multiple application replicas using Kubernetes.
-- Implement Kubernetes Services for application communication.
-- Configure health checks using readiness and liveness probes.
-- Understand container orchestration and self-healing.
+1. Containerize the Flask application using Docker.
+2. Deploy Flask and Redis using Kubernetes.
+3. Implement Horizontal Pod Autoscaling (HPA).
+4. Simulate hybrid-cloud deployment with primary and backup clusters.
+5. Configure NGINX for automatic failover.
+6. Apply cost optimization techniques and measure resource usage.
 
 ## 🛠️ Technologies Used
 
@@ -26,195 +25,141 @@ The application is deployed locally using Minikube.
 |---|---|
 | Python | Backend programming |
 | Flask | Web application framework |
-| Redis | In-memory database for visitor count |
-| Docker | Application containerization |
-| Docker Compose | Local multi-container setup |
+| Redis | Visitor count storage |
+| Docker | Containerization |
+| Docker Compose | Local multi-container deployment |
 | Kubernetes | Container orchestration |
-| Minikube | Local Kubernetes cluster |
-| Gunicorn | Python WSGI application server |
+| Minikube | Local Kubernetes clusters |
+| kubectl | Kubernetes management |
+| NGINX | Reverse proxy and failover |
+| HPA | Automatic pod scaling |
+| Gunicorn | Python application server |
 
-## 🏗️ Project Architecture
+## 🏗️ Architecture
 
-```text
-                 User / Browser
-                       |
-                       |
-                 NodePort :30080
-                       |
-                       |
-                Kubernetes Service
-                       |
-                 ----------------
-                 |              |
-              Flask Pod      Flask Pod
-                 |              |
-                 ------+-------
-                       |
-                       |
-                Redis Service
-                       |
-                       |
-                  Redis Pod
-                       |
-                       |
-               visitor_count
-```
+### Normal Kubernetes Deployment
 
-### How It Works
+User Browser → Kubernetes NodePort Service → Flask Pods → Redis Service → Redis Pod
 
-1. A user opens the visitor counter website.
-2. Kubernetes Service routes the request to one of the Flask application Pods.
-3. Flask receives the request and communicates with Redis.
-4. Redis increments the `visitor_count` key.
-5. Flask displays the updated visitor count on the webpage.
-6. Multiple Flask replicas share the same Redis counter.
+### Hybrid-Cloud Simulation
+
+User → NGINX Reverse Proxy
+- Primary: Private Minikube Cluster
+- Backup: Public Minikube Cluster
+
+Both clusters contain Flask application replicas and an independent Redis deployment.
+
+**Note:** The private and public cloud environments are simulated using two separate local Minikube clusters. They are not actual deployments on commercial cloud providers.
 
 ## 📁 Project Structure
 
 ```text
-visitor-counter/
+cloud_project/
 │
-├── app.py                # Flask application
-├── Dockerfile            # Docker image configuration
-├── docker-compose.yml    # Local multi-container setup
-├── k8s.yaml              # Kubernetes deployments and services
-├── requirements.txt      # Python dependencies
-├── .gitignore            # Files excluded from Git
-└── README.md             # Project documentation
+├── app.py
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── k8s.yaml
+├── hpa.yaml
+├── nginx.conf
+├── .gitignore
+└── README.md
 ```
 
-## ⚙️ Prerequisites
+## 🚀 Task 1: Docker Containerization
 
-Install the following tools before running the project:
+The Flask application is containerized using a Dockerfile based on `python:3.12-slim`.
 
-- Python 3
-- Docker Desktop
-- Docker Compose
-- kubectl
-- Minikube
-- Git
+Dependencies are installed using pip with `--no-cache-dir` to avoid retaining unnecessary package cache files.
 
-## 🚀 Running the Project Using Docker Compose
+### Run using Docker Compose
 
-### Step 1: Clone the repository
+Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/cloud-visitor-counter.git
+git clone https://github.com/shikharawasthi3500/cloud_project.git
+cd cloud_project
 ```
 
-### Step 2: Navigate to the project directory
-
-```bash
-cd cloud-visitor-counter
-```
-
-### Step 3: Start the application
+Build and start the application:
 
 ```bash
 docker compose up --build -d
 ```
 
-### Step 4: Open the application
-
-Visit:
+Open:
 
 ```text
 http://localhost:5000
 ```
 
-### Step 5: Stop the application
+Stop the application:
 
 ```bash
 docker compose down
 ```
 
-## ☸️ Kubernetes Deployment Using Minikube
+## ☸️ Task 2: Kubernetes Deployment
 
-### Step 1: Start Minikube
+The application is deployed using Kubernetes Deployments and Services.
+
+### Components
+
+- Redis Deployment: 1 replica
+- Flask Deployment: 2 initial replicas
+- Redis Service: ClusterIP
+- Flask Service: NodePort
+- NodePort: 30080
+- Readiness and liveness probes: `/health`
+
+### Deployment Commands
+
+Start Minikube:
 
 ```bash
 minikube start
 ```
 
-### Step 2: Build the Docker image inside Minikube
+Build the application image:
 
 ```bash
 minikube image build -t visitor-counter:v1 .
 ```
 
-### Step 3: Apply Kubernetes configuration
+Apply Kubernetes configuration:
 
 ```bash
 kubectl apply -f k8s.yaml
 ```
 
-### Step 4: Check Pods
+Check Pods:
 
 ```bash
 kubectl get pods
 ```
 
-### Step 5: Check Deployments
-
-```bash
-kubectl get deployments
-```
-
-### Step 6: Check Services
+Check Services:
 
 ```bash
 kubectl get services
 ```
 
-### Step 7: Access the application
+Access the application:
 
 ```bash
 minikube service visitor-web --url
 ```
 
-Open the generated URL in your browser.
+### Self-Healing Verification
 
-## 🔍 Testing and Verification
-
-### Check application Pods
-
-```bash
-kubectl get pods
-```
-
-### Check visitor count in Redis
-
-```bash
-kubectl exec deployment/redis-deployment -- redis-cli GET visitor_count
-```
-
-### Check Redis keys
-
-```bash
-kubectl exec deployment/redis-deployment -- redis-cli KEYS "*"
-```
-
-### Check Redis database size
-
-```bash
-kubectl exec deployment/redis-deployment -- redis-cli DBSIZE
-```
-
-### Check application logs
-
-```bash
-kubectl logs deployment/visitor-web
-```
-
-### Test Kubernetes self-healing
-
-Delete one application Pod:
+Delete one Flask Pod:
 
 ```bash
 kubectl delete pod POD_NAME
 ```
 
-Check the Pods again:
+Check Pods again:
 
 ```bash
 kubectl get pods
@@ -222,68 +167,200 @@ kubectl get pods
 
 Kubernetes automatically creates a replacement Pod to maintain the desired replica count.
 
-## ✨ Key Features
+## 📈 Task 3: Horizontal Pod Autoscaling
 
-- **Real-time Visitor Counting:** Automatically increments the visitor count whenever the homepage is accessed.
-- **Centralized Data Storage:** Redis stores a shared visitor count for all Flask replicas.
-- **Containerization:** Docker packages the application and its dependencies.
-- **Scalability:** Kubernetes manages multiple Flask application replicas.
-- **Self-Healing:** Kubernetes replaces deleted or failed Pods to maintain the desired replica count.
-- **Health Monitoring:** Readiness and liveness probes check application health through the `/health` endpoint.
-- **Service Discovery:** Kubernetes Services enable communication between Flask and Redis.
+HPA automatically adjusts the number of Flask application replicas based on CPU utilization.
 
-## 📊 Kubernetes Configuration
+### HPA Configuration
 
-| Component | Configuration |
+- Minimum replicas: 2
+- Maximum replicas: 6
+- CPU utilization target: 50%
+
+Apply HPA:
+
+```bash
+kubectl apply -f hpa.yaml
+```
+
+Check autoscaling:
+
+```bash
+kubectl get hpa
+```
+
+Monitor scaling:
+
+```bash
+kubectl get hpa -w
+```
+
+### Load Testing
+
+A BusyBox deployment was used to generate HTTP requests:
+
+```bash
+kubectl create deployment load-generator --image=busybox:1.36 --replicas=5 -- /bin/sh -c "while true; do wget -q -O- http://visitor-web:5000/ > /dev/null; done"
+```
+
+Remove the load generator after testing:
+
+```bash
+kubectl delete deployment load-generator
+```
+
+**Observed result:** The application scaled from 2 replicas to 6 replicas under heavy load. After load generation stopped, the HPA could scale back toward its minimum replica count.
+
+## 🌐 Task 4: Hybrid Cloud with Failover
+
+Hybrid-cloud behavior was simulated using two separate Minikube clusters.
+
+| Cluster | Role |
 |---|---|
-| Redis Deployment | 1 replica |
-| Flask Deployment | 2 replicas |
-| Redis Service | ClusterIP |
-| Flask Service | NodePort |
-| NodePort | 30080 |
-| Flask Port | 5000 |
-| Redis Port | 6379 |
-| Application Image | visitor-counter:v1 |
+| minikube | Private cluster (Primary) |
+| public-cluster | Public cluster (Backup) |
+
+Both clusters run the Flask application and Redis.
+
+### NGINX Reverse Proxy
+
+NGINX is configured to send requests to the private cluster first. The public cluster is configured as a backup upstream.
+
+The application endpoints were exposed locally through Kubernetes port forwarding.
+
+Private cluster:
+
+```bash
+kubectl --context=minikube port-forward service/visitor-web 5001:5000 --address=0.0.0.0
+```
+
+Public cluster:
+
+```bash
+kubectl --context=public-cluster port-forward service/visitor-web 5002:5000 --address=0.0.0.0
+```
+
+Start the NGINX container:
+
+```bash
+docker run -d --name visitor-nginx -p 8080:80 -v "${PWD}/nginx.conf:/etc/nginx/nginx.conf:ro" nginx:alpine
+```
+
+Access the application through NGINX:
+
+```text
+http://localhost:8080
+```
+
+### Failover Testing
+
+1. Start both Minikube clusters.
+2. Verify that both application endpoints are healthy.
+3. Access the application through NGINX.
+4. Stop the primary cluster:
+
+```bash
+minikube stop -p minikube
+```
+
+5. Test the NGINX endpoint again:
+
+```bash
+curl http://localhost:8080/health
+```
+
+**Observed result:** After the primary cluster was stopped, NGINX continued returning HTTP 200 OK with Redis connected through the backup cluster.
+
+**Important limitation:** Each cluster uses its own Redis instance. Visitor counts are therefore not synchronized between clusters, and this setup does not guarantee zero data loss.
+
+## 💰 Task 5: Cost Optimization
+
+Three optimization approaches were demonstrated.
+
+### 1. Docker Image Optimization
+
+- Used the lightweight `python:3.12-slim` base image.
+- Used `pip install --no-cache-dir`.
+- Avoided unnecessary application files in the image.
+
+Measured Docker image disk usage: **204 MB**.
+
+### 2. Kubernetes Resource Right-Sizing
+
+Flask resource requests were reduced based on observed usage.
+
+| Resource | Before | After |
+|---|---:|---:|
+| CPU request per Pod | 100m | 50m |
+| Memory request per Pod | 128Mi | 96Mi |
+| CPU limit per Pod | 500m | 300m |
+| Memory limit per Pod | 256Mi | 192Mi |
+
+This reduced requested CPU by 50% and requested memory by 25% per Flask Pod.
+
+### 3. Horizontal Pod Autoscaling
+
+Instead of maintaining a fixed number of application replicas, HPA adjusts replicas according to demand.
+
+- Idle configuration: 2 replicas
+- Maximum configured replicas: 6
+- CPU target: 50%
+
+This avoids reserving the maximum number of application replicas when traffic is low.
+
+**Note:** These are measured local resource optimizations. Monetary cloud savings have not been calculated because the project runs on local Minikube clusters.
+
+## 🔍 Application Health Check
+
+The application provides a health endpoint:
+
+```bash
+curl http://localhost:5000/health
+```
+
+Expected response:
+
+```json
+{
+  "redis": "connected",
+  "status": "healthy"
+}
+```
 
 ## ⚠️ Limitations
 
-- The application currently runs on a local Minikube cluster rather than a public cloud platform.
-- Redis is configured without persistent storage. Visitor data may be lost if the Redis Pod or process restarts.
-- The project does not currently include authentication or advanced security features.
-- No external monitoring or automated CI/CD pipeline is configured.
+- Hybrid-cloud deployment is simulated locally using Minikube.
+- Redis does not currently use persistent volumes.
+- Redis data is independent between the two clusters.
+- No actual cloud-provider billing comparison is available.
+- NGINX failover depends on the local port-forwarding processes remaining active.
 
 ## 🔮 Future Improvements
 
-- Deploy the application on AWS, Azure or Google Cloud.
-- Add Redis PersistentVolume and PersistentVolumeClaim.
-- Implement Horizontal Pod Autoscaling.
-- Add monitoring using Prometheus and Grafana.
+- Deploy on AWS, Microsoft Azure or Google Cloud.
+- Configure Redis persistent storage and replication.
+- Synchronize application data between clusters.
+- Implement Prometheus and Grafana monitoring.
 - Configure CI/CD using GitHub Actions.
-- Add a custom domain and HTTPS support.
-- Improve frontend design and add visitor analytics.
+- Add HTTPS and a custom domain.
 
-## 👨‍💻 Learning Outcomes
+## 📚 Learning Outcomes
 
 Through this project, I learned:
 
-- Building web applications using Flask.
-- Using Redis for centralized data storage.
-- Creating Docker images and containers.
-- Managing multi-container applications.
-- Deploying applications using Kubernetes.
-- Working with Kubernetes Pods, Deployments and Services.
-- Implementing health probes and understanding self-healing.
+- Docker image creation and containerization.
+- Multi-container deployment using Docker Compose.
+- Kubernetes Deployments, Pods and Services.
+- Kubernetes self-healing and health probes.
+- Horizontal Pod Autoscaling.
+- Hybrid-cloud architecture and failover simulation.
+- NGINX reverse proxy configuration.
+- Resource monitoring and optimization.
 
-## 📚 References
+## 🔗 Project Repository
 
-- [Docker Documentation](https://docs.docker.com/)
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [Redis Documentation](https://redis.io/docs/)
-- [Flask Documentation](https://flask.palletsprojects.com/)
-- [Minikube Documentation](https://minikube.sigs.k8s.io/docs/)
+GitHub: https://github.com/shikharawasthi3500/cloud_project
 
----
-
-**Project:** Cloud-Based Visitor Counter Using Docker, Kubernetes and Redis
+**Project:** Cloud-Based Visitor Counter Using Flask, Redis, Docker and Kubernetes
 
 **Purpose:** Academic Cloud Computing Project
